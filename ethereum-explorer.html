@@ -1,0 +1,763 @@
+<html lang="us">
+<head>
+    <meta charset="utf-8" />
+    <title>SKALE - Ethereum Blockchain Explorer</title>
+    <link href="jquery-ui-1.12.1/jquery-ui.css" type="text/css" rel="stylesheet">
+    <script src="jquery-ui-1.12.1/external/jquery/jquery.js"></script>
+    <script src="jquery-ui-1.12.1/jquery-ui.js"></script>
+
+    <link href="jsgrid-1.5.3/dist/jsgrid.min.css" type="text/css" rel="stylesheet">
+    <link href="jsgrid-1.5.3/dist/jsgrid-theme.min.css" type="text/css" rel="stylesheet">
+    <script src="jsgrid-1.5.3/dist/jsgrid.min.js"></script>
+    <!--link href="jsgrid-1.5.3/css/jsgrid.css" type="text/css" rel="stylesheet">
+    <link href="jsgrid-1.5.3/css/theme.css" type="text/css" rel="stylesheet" -->
+    <!-- see http://js-grid.com/demos/ -->
+
+    <link rel="stylesheet" href="webui-popover-master/dist/jquery.webui-popover.min.css" type="text/css" rel="stylesheet">
+    <script src="webui-popover-master/dist/jquery.webui-popover.min.js"></script>
+    <!-- see https://github.com/sandywalker/webui-popover and http://sandywalker.github.io/webui-popover/demo/# -->
+
+    <script src="store.js-master/dist/store.everything.min.js"></script>
+    <!-- see https://github.com/marcuswestin/store.js/ -->
+
+    <script src="web3.min.js"></script>
+
+    <style>
+        html, body
+        , div, p, a, span
+        , h1, h2, h3, h4, h5, h6
+        , .jsgrid, .jsgrid-table
+        , .jsgrid-header-row .jsgrid-header-cell
+        , .jsgrid-row, .jsgrid-cell
+        , .webui-popover-content
+        , .white
+        {
+            font-family: "Helvetica Neue Light", "Open Sans", Helvetica;
+            margin: 0; padding: 0;
+            margin-block-start: 0; margin-block-end: 0;
+            color: black;
+            background-color: white;
+        }
+        .webui-popover, .webui-popover-content, .webui-arrow, .white {
+            background-color: #F0F0F0;
+        }
+        h1, h2, h3, h4, h5, h6 { font-weight: bold; }
+        h1 { font-size: 14pt; }
+        h2 { font-size: 12pt; }
+        h3 { font-size: 11pt; }
+        h3 { font-size: 14pt; }
+        div, p, a, span
+        , h1, h2, h3, h4, h5, h6
+        , #idSearchForm, #idServerForm
+        {
+            background-color: transparent;
+        }
+        a {
+            color: #601010;
+        }
+        a:hover, a:visited {
+            color: #903030;
+            background-color: #FFD040;
+        }
+        html, body
+        , div, p
+        , .jsgrid, .jsgrid-table
+        , .top_table
+        , #idBlocksListGrid
+        , #idPropertiesGrid0, #idPropertiesGrid1, #idPropertiesGrid2
+        , #idDialogGrid
+        , #idSearchForm, #idSearchInput
+        , #idServerForm, #idServerInput
+        {
+            font-size: 9pt;
+            margin: 0; border: 0; padding: 0;
+            margin-block-start: 0; margin-block-end: 0;
+        }
+        #idSearchForm, #idServerForm {
+            display: inline;
+        }
+        #idSearchInput, #idServerInput {
+            padding: 3pt;
+        }
+        #idSearchInput {
+            width: 200pt;
+        }
+        #idServerInput {
+            width: 120pt;
+        }
+        #idSearchButton, #idServerButton {
+            padding: 2pt;
+            font-size: 9pt;
+        }
+        html, body
+        , div, p
+        , .jsgrid-grid-body
+        {
+            color: black;
+            background-color: #F0F0F0;
+        }
+        .jsgrid-header-row .jsgrid-header-cell {
+            color: white;
+            background-color: #204050;
+        }
+        .jsgrid, .jsgrid-table
+        , .jsgrid-header-row .jsgrid-header-cell
+        , .jsgrid-row, .jsgrid-cell
+        {
+            margin: 0; padding: 0.25em;
+            margin-block-start: 0;
+            margin-block-end: 0;
+        }
+        #idBlocksListExternalPager {
+            display: inline-block;
+        }
+        .dialog, #idPropertiesContainer0, #idPropertiesContainer1 {
+            display: none;
+        }
+        .ui-dialog, .ui-dialog-content
+        , .ui-dialog-buttonpane, .ui-dialog-buttons, .ui-dialog-buttonset
+        , .ui-dialog-title, .ui-dialog-titlebar
+        , #idDialogMessage
+        {
+            color: #F0E0C0;
+            background-color: #203040;
+            border: 0;
+        }
+        .ui-dialog {
+            -webkit-box-shadow: 0px 0px 68px 0px rgba(0,0,0,0.86);
+            -moz-box-shadow: 0px 0px 68px 0px rgba(0,0,0,0.86);
+            box-shadow: 0px 0px 68px 0px rgba(0,0,0,0.86);
+        }
+        .ui-resizable-handle {
+            background-color: transparent;
+        }
+        .top_table {
+            border-spacing: 0;
+            border-collapse: separate;
+        }
+        table.top_table {
+            width: 100%;
+        }
+        table.top_table {
+            padding-top: 5pt;
+            padding-bottom: 4pt;
+        }
+        /* clearable text inputs */
+        .clearable {
+            background: #fff no-repeat right -10px center;
+            border: 1px solid #999;
+            padding: 3px 18px 3px 4px;     /* Use the same right padding (18) in jQ! */
+            border-radius: 3px;
+            transition: background 0.4s;
+        }
+        .clearable.x  { background-position: right 5px center; } /* (jQ) Show icon */
+        .clearable.onX{ cursor: pointer; }              /* (jQ) hover cursor style */
+        .clearable::-ms-clear {display: none; width:0; height:0;} /* Remove IE default X */
+        /* */
+        .helper-comment {
+            color: #707070;
+            font-style: italic;
+        }
+    </style>
+    <script>
+        function create_string_history_object() {
+            var joHistory = {
+                "h_": []
+                , "isModified_": false
+                , "max_": 20
+                , "size": function () {
+                    return 0 + this.h_.length;
+                }
+                , "get": function ( i ) {
+                    try {
+                        var s = "" + this.h_[ i ];
+                        return s;
+                    } catch( e ) { return null; }
+                }
+                , "indexOf": function ( what ) {
+                    var cnt = this.size();
+                    for( var i = 0; i < cnt; ++ i ) {
+                        var s = this.get( i );
+                        if( s == what )
+                            return i;
+                    }
+                    return -1;
+                }
+                , "clear": function ( what ) {
+                    var cntRemoved = 0;
+                    if( what == undefined || what == null || what == "" )
+                        { cntRemoved = this.h_.length; this.h_ = []; this.setModified( true ); return cntRemoved; } // clear all
+                    while( true ) {
+                        var i = this.indexOf( what );
+                        if( i < 0 )
+                            break;
+                        this.h_.splice( i, 1 );
+                        ++cntRemoved;
+                    }
+                    return cntRemoved;
+                }
+                , "push": function ( what ) {
+                    if( what == undefined || what == null || what == "" )
+                        return false;
+                    var idxFound = this.indexOf( what );
+                    if( idxFound == 0 )
+                        return false;
+                    if( idxFound > 0 )
+                        this.h_.splice( idxFound, 1 ); // remove, will re-insert
+                    this.h_.splice( 0, 0, "" + what.toString() ); //this.h_.push( "" + what.toString() );
+                    if( this.max_ > 0 ) {
+                        var n = this.h_.length;
+                        if( n > this.max_ )
+                            this.h_.splice( this.max_ - n );
+                    }
+                    this.setModified( true );
+                    return true;
+                }
+                , "setModified": function ( b ) { this.isModified_ = b ? true : false; }
+                , "isModified": function () { return this.isModified_ ? true : false; }
+                , "each": function ( fn ) {
+                    if( fn == undefined || fn == null || (!(typeof fn == "function")) )
+                        return 0 ;
+                    var cnt = this.size(), cntPass = 0;
+                    for( var i = 0; i < cnt; ++ i ) {
+                        var s = this.get( i );
+                        if( ! fn( s, i, cnt ) )
+                            break;
+                        ++ cntPass;
+                    }
+                    return cntPass;
+                }
+                , "load": function ( strName ) {
+                    this.setModified( true );
+                    this.h_ = store.get( strName );
+                    if( ! ( typeof this.h_ == "array" || typeof this.h_ == "object" ) )
+                        this.h_ = [];
+                }
+                , "save": function ( strName ) { store.set( strName, this.h_ ); }
+            };
+            return joHistory;
+        }
+        var joHistoryURLs = create_string_history_object();
+        var joHistorySearch = create_string_history_object();
+
+        JSON.stringifyOnce = function( obj, replacer, indent ) {
+            var printedObjects = [];
+            var printedObjectKeys = [];
+            function printOnceReplacer( key, value ) {
+                if( printedObjects.length > 2000 ) { // browsers will not print more than 20K, I don't see the point to allow 2K.. algorithm will not be fast anyway if we have too many objects
+                    return "object too long";
+                }
+                var printedObjIndex = false;
+                printedObjects.forEach( function( obj, index ) {
+                    if( obj===value ) { printedObjIndex = index; }
+                } );
+                if( key == "" ) { // root element
+                    printedObjects.push(obj);
+                    printedObjectKeys.push("root");
+                     return value;
+                }
+                else if( printedObjIndex + "" != "false" && typeof(value) == "object") {
+                    if( printedObjectKeys[printedObjIndex] == "root" ) {
+                        return "(pointer to root)";
+                    } else {
+                        return "(see " + ((!!value && !!value.constructor) ? value.constructor.name.toLowerCase()  : typeof(value)) + " with key " + printedObjectKeys[printedObjIndex] + ")";
+                    }
+                } else {
+                    var qualifiedKey = key || "(empty key)";
+                    printedObjects.push(value);
+                    printedObjectKeys.push(qualifiedKey);
+                    if( replacer ) {
+                        return replacer( key, value );
+                    } else {
+                        return value;
+                    }
+                }
+            }
+            return JSON.stringify(obj, printOnceReplacer, indent);
+        };
+
+        function timestamp_2_friendly_string( ts ) {
+            return "" + ts + " <span class=\"helper-comment\">" + new Date(parseInt(ts)*1000) + "</span>";
+        }
+
+        let w3 = null;
+        let nPageSize = 10, nPageButtonCount = 5;
+        //function
+        function clear_blocks_grid() {
+            $("#idBlocksListGrid").html(" "); // clear
+        }
+        async function do_expose_blocks_grid() {
+            clear_blocks_grid();
+            if( ! w3 )
+                return;
+            const joController = {
+                "loadData": function( filter ) {
+                    async function do_load( filter ) {
+                        const nLatestBlockNumber = await w3.eth.getBlockNumber();
+                        console.log( "Latest block number is " + nLatestBlockNumber );
+                        $("#idLatestBlockNumber").html( "<b><a href=\"javascript: do_show_block_by_number_or_hash("+nLatestBlockNumber+");\">" + nLatestBlockNumber + "</a></b>" );
+                        //
+                        var nStartIndex = ( filter.pageIndex - 1 ) * filter.pageSize;
+                        var idxBlock = nStartIndex, cntBlocks = filter.pageSize, arrBlocks = [];
+                        var idxAfterLast = idxBlock + cntBlocks;
+                        if( cntBlocks > (nLatestBlockNumber+1) )
+                            cntBlocks = (nLatestBlockNumber+1);
+                        for( ; idxBlock < idxAfterLast; ++ idxBlock ) {
+                            const nWalkBlockNumber = nLatestBlockNumber - idxBlock;
+                            if( nWalkBlockNumber > nLatestBlockNumber )
+                                break;
+                            if( nWalkBlockNumber < 0 )
+                                break;
+                            const joBlock = await w3.eth.getBlock( nWalkBlockNumber );
+                            //console.log( JSON.stringify(joBlock,null,4) );
+                            //
+                            joBlock.cntTransactions = 0;
+                            try { joBlock.cntTransactions = joBlock.transactions.length; } catch( e ) { }
+                            //
+                            try { joBlock.timestamp = timestamp_2_friendly_string(joBlock.timestamp); } catch( e ) { }
+                            //
+                            arrBlocks.push( joBlock );
+                        }
+                        return {
+                            "data": arrBlocks
+                            , "itemsCount": (nLatestBlockNumber+1)
+                        };
+                    }
+                    return do_load( filter );
+                }
+                , "insertItem": function( item ) { }
+                , "updateItem": function( item ) { }
+                , "deleteItem": function( item ) { }
+            };
+            $("#idBlocksListGrid").jsGrid( {
+                // basic
+                "width": "100%", "height": "auto"
+                , "inserting": false, "editing": false, "sorting": false
+                // paging
+                , "autoload": true, "pageLoading": true, "paging": true, "pageSize": nPageSize, "pageButtonCount": nPageButtonCount
+                ,"controller": joController
+                ,"fields": [
+                    { "name": "number",          "type": "number", "width":  30, "title": "Block#" },
+                    { "name": "cntTransactions", "type": "number", "width":  25, "title": "Transactions" },
+                    { "name": "size" ,           "type": "number", "width":  25, "title": "Size" },
+                    { "name": "timestamp",       "type": "text", "width":  150, "title": "Time Stamp" },
+                    { "name": "gasLimit",        "type": "number", "width":  25, "title": "Gas Limit" },
+                    { "name": "gasUsed",         "type": "number", "width":  25, "title": "Gas Used" },
+                    //{ "name": "difficulty",      "type": "number", "width":  50, "title": "Difficulty" },
+                    { "name": "hash",            "type": "text",   "width": 200, "title": "Hash" }
+                    //{ "name": "nonce",           "type": "number", "width":  50, "title": "Nonce" },
+                    //{ "name": "totalDifficulty", "type": "text", "width":  25, "title": "Total Difficulty" },
+                ]
+                // custom pager
+                , "pagerContainer": "#idBlocksListExternalPager"
+                , "pagerFormat": "Current page: {pageIndex} &nbsp;&nbsp; {first} {prev} {pages} {next} {last} &nbsp;&nbsp; Total pages: {pageCount}"
+                , "pagePrevText": "<"
+                , "pageNextText": ">"
+                , "pageFirstText": "<<"
+                , "pageNavigatorNextText": "&#8230;"
+                , "pageLastText": ">>"
+                , "pageNavigatorPrevText": "&#8230;"
+                //
+                , "rowClick": function( args ) {
+                    //console.log( JSON.stringifyOnce(args,null,4) );
+                    try { do_show_block_by_number_or_hash( args.item.number ); return; } catch( e ) { }
+                }
+            } );
+        }
+        async function async_document_ready_handler() {
+            clear_blocks_grid();
+            $("#idBlocksListGrid").css( { "width": "100%" } );
+            //
+            $("#idSearchInput").keydown( function( event ) {
+                var keyPressed = event.keyCode || event.which;
+                if( keyPressed == 13 )
+                    //$(this).closest("form").submit(); // submit on enter pressed in text field
+                    $("#idSearchButton").click();
+            });
+            $("#idServerInput").keydown( function( event ) {
+                var keyPressed = event.keyCode || event.which;
+                if( keyPressed == 13 )
+                    $("#idServerButton").click();
+            });
+            //
+            //
+            // clearable text inputs
+            function tog( v ) { return v ? "addClass" : "removeClass"; }
+            $(document).on( "input", ".clearable", function () {
+                $(this)[tog(this.value)]("x");
+            }).on( "mousemove", ".x", function ( e ) {
+                $(this)[tog(this.offsetWidth-18 < e.clientX-this.getBoundingClientRect().left)]("onX");
+            }).on("touchstart click", ".onX", function( ev ){
+                ev.preventDefault();
+                $(this).removeClass("x onX").val("").change();
+            });
+            // $(".clearable").trigger("input");
+            // Uncomment the line above if you pre-fill values from LS or server
+            //
+            //
+            $("#idSearchInput").webuiPopover( {
+                "url": "#idSearchHistoryPopover"
+                , "trigger": "hover"
+            } );
+            $("#idServerInput").webuiPopover( {
+                "url": "#idServerHistoryPopover"
+                , "trigger": "hover"
+            } );
+            //
+            //
+            joHistoryURLs.load( "history_urls" );
+            joHistorySearch.load( "history_search" );
+            joHistoryURLs.setModified( false );
+            joHistorySearch.setModified( false );
+            update_recent_servers();
+            update_recent_searches();
+            await do_connect( get_web3_url_string(), true );
+            var strWhat = store.get( "search_string" );
+            if( ! ( strWhat == undefined || strWhat == null || strWhat == "" ) )
+                do_search( strWhat, true );
+        }
+        $( function () { async_document_ready_handler(); } ); // we would like to handle document's "ready" event in an async manner)
+
+        function hide_properties() {
+            var i, cnt = 3;
+            for( i = 0; i < cnt; ++ i ) {
+                $("#idPropertiesContainer"+i).css( { "display": "none" } );
+                $("#idPropertiesHeading+i").html( "N/A" );
+                $("#idPropertiesGrid+i").html( "N/A" );
+            }
+        }
+
+        async function do_show_account_info( account_addr ) {
+            var wei = await w3.eth.getBalance( account_addr );
+            var ether = w3.utils.fromWei( wei );
+            // alert(
+            //     "account: " + account_addr + "\n"
+            //     + "wei: " + wei + "\n"
+            //     + "eth: " + ether
+            //     );
+            $("#idDialogMessage").html("Account:");
+            //
+            $("#idDialogGrid").html( " " ); // clear
+            var arrData = [
+                { "number":  1, "name": "Address", "value": account_addr },
+                { "number":  2, "name": "Wei",     "value": "" + wei   + " <span class=\"helper-comment\">Wei</span>" },
+                { "number":  3, "name": "Ether",   "value": "" + ether + " <span class=\"helper-comment\">ETH</span>" }
+            ];
+            $("#idDialogGrid").jsGrid( {
+                // basic
+                "width": "100%", "height": "auto"
+                , "inserting": false, "editing": false, "sorting": true
+                ,"data": arrData
+                ,"fields": [
+                    { "name": "number", "type": "number", "width": 5, "title": "#" },
+                    { "name": "name",  "type": "text", "width": 10, "title": "Name" },
+                    { "name": "value", "type": "text", "width": 85, "title": "Value" }
+                ]
+            } );
+            //
+            $("#idDialog").dialog( {
+                  "width": "500pt"
+                , "modal": true
+                , "buttons": { "Ok": function() { $(this).dialog( "close" ); } }
+            });
+        }
+
+        async function do_show_transaction( txHash ) {
+            //alert( "transaction# " + txHash );
+            var joTX = await w3.eth.getTransaction( txHash );
+            //alert( JSON.stringify(joTX,null,4) );
+            console.log( JSON.stringify(joTX,null,4) );
+            $("#idDialogMessage").html("Transaction:");
+            //
+            $("#idDialogGrid").html( " " ); // clear
+            var arrData = [
+                { "number":  1, "name": "Block Hash",        "value": "<a href=\"javascript: do_show_block_by_number_or_hash('"+joTX.blockHash+"');\">" + joTX.blockHash + "</a>" },
+                { "number":  2, "name": "Block Number",      "value": "<a href=\"javascript: do_show_block_by_number_or_hash('"+joTX.blockNumber+"');\">" + joTX.blockNumber + "</a>" },
+                { "number":  3, "name": "From",              "value": "<a href=\"javascript: do_show_account_info('"+joTX.from+"');\">" + joTX.from + "</a>" },
+                { "number":  4, "name": "To",                "value": "<a href=\"javascript: do_show_account_info('"+joTX.to+"');\">" + joTX.to + "</a>" },
+                { "number":  5, "name": "Gas",               "value": joTX.gas },
+                { "number":  6, "name": "Gas Price",         "value": joTX.gasPrice },
+                { "number":  7, "name": "Cost",              "value": "" + w3.utils.fromWei(joTX.gasPrice)*parseInt(joTX.gas) + " <span class=\"helper-comment\">ETH</span>" },
+                { "number":  8, "name": "Hash",              "value": joTX.hash },
+                { "number":  9, "name": "nonce",             "value": joTX.nonce },
+                { "number": 10, "name": "Transaction Index", "value": joTX.transactionIndex },
+                { "number": 11, "name": "Value (Wei)",       "value": "" +                   joTX.value   + " <span class=\"helper-comment\">Wei</span>" },
+                { "number": 11, "name": "Value (ETH)",       "value": "" + w3.utils.fromWei( joTX.value ) + " <span class=\"helper-comment\">ETH</span>" },
+                { "number": 12, "name": "Input",             "value": joTX.input }
+            ];
+            $("#idDialogGrid").jsGrid( {
+                // basic
+                "width": "100%", "height": "auto"
+                , "inserting": false, "editing": false, "sorting": true
+                ,"data": arrData
+                ,"fields": [
+                    { "name": "number", "type": "number", "width": 5, "title": "#" },
+                    { "name": "name",  "type": "text", "width": 10, "title": "Name" },
+                    { "name": "value", "type": "text", "width": 85, "title": "Value" }
+                ]
+            } );
+            //
+            $("#idDialog").dialog( {
+                "width": "80%" // "500pt"
+                , "modal": true
+                , "buttons": { "Ok": function() { $(this).dialog( "close" ); } }
+            });
+        }
+
+        async function do_show_block_by_number_or_hash( block_Number_or_Hash ) {
+            const joBlock = await w3.eth.getBlock( block_Number_or_Hash );
+            //console.log( JSON.stringify(joBlock,null,4) );
+            do_show_block_object( joBlock );
+        }
+        async function do_show_block_object( joBlock ) {
+            hide_properties();
+            async function do_load_block_transactions( joBlock ) {
+                try {
+                    var cntTransactions = 0 + joBlock.transactions.length;
+                    if( cntTransactions ) {
+                        $("#idPropertiesContainer1").css( { "display": "block" } );
+                        $("#idPropertiesHeading1").html( "Block# " + joBlock.number + " transactions" );
+                        $("#idPropertiesGrid1").html( " " ); // clear
+                        var arrData = [];
+                        for( var idxTransaction = 0; idxTransaction < cntTransactions; ++ idxTransaction ) {
+                            var t = joBlock.transactions[ idxTransaction ];
+                            arrData.push( {
+                                "number": idxTransaction + 1
+                                , "transaction": "<a href=\"javascript: do_show_transaction('"+t+"');\">" + t + "</a>"
+                                // , "txHash": t
+                            } );
+                        }
+                        $("#idPropertiesGrid1").jsGrid( {
+                            // basic
+                            "width": "100%", "height": "200pt"
+                            , "inserting": false, "editing": false, "sorting": true
+                            ,"data": arrData
+                            ,"fields": [
+                                { "name": "number", "type": "number", "width": 5, "title": "#" },
+                                { "name": "transaction", "type": "text", "width": 95, "title": "Transaction#" }
+                            ]
+                            // , "rowClick": function( args ) {
+                            //     //console.log( JSON.stringifyOnce(args,null,4) );
+                            //     //alert( JSON.stringifyOnce(args,null,4) );
+                            //     do_show_transaction( args.item.txHash );
+                            // }
+                        } );
+                    }
+                } catch( e ) {
+                }
+            }
+            async function do_load_block_properties( joBlock ) {
+                try {
+                    /////////////////$("#idPropertiesGrid0").html( JSON.stringify(joBlock,null,4) ); $("#idPropertiesGrid0").css( { "white-space": "pre" } );
+                    $("#idPropertiesGrid0").html( " " ); // clear
+                    var arrData = [
+                        { "number":  1, "name": "number",           "value": joBlock.number },
+                        { "number":  2, "name": "nonce",            "value": joBlock.nonce },
+                        { "number":  3, "name": "size",             "value": joBlock.size },
+                        { "number":  4, "name": "timestamp",        "value": timestamp_2_friendly_string( joBlock.timestamp ) },
+                        { "number":  5, "name": "difficulty",       "value": joBlock.difficulty },
+                        { "number":  6, "name": "totalDifficulty",  "value": joBlock.totalDifficulty },
+                        { "number":  7, "name": "miner",            "value": "<a href=\"javascript: do_show_account_info('"+joBlock.miner+"');\">" + joBlock.miner + "</a>" },
+                        { "number":  8, "name": "gasLimit",         "value": joBlock.gasLimit },
+                        { "number":  9, "name": "gasUsed",          "value": joBlock.gasUsed },
+                        { "number": 10, "name": "hash",             "value": joBlock.hash },
+                        { "number": 11, "name": "parentHash",       "value": joBlock.parentHash },
+                        { "number": 12, "name": "mixHash",          "value": joBlock.mixHash },
+                        { "number": 13, "name": "receiptsRoot",     "value": joBlock.receiptsRoot },
+                        { "number": 14, "name": "stateRoot",        "value": joBlock.stateRoot },
+                        { "number": 15, "name": "transactionsRoot", "value": joBlock.transactionsRoot },
+                        { "number": 16, "name": "sha3Uncles",       "value": joBlock.sha3Uncles },
+                        { "number": 17, "name": "uncles",           "value": JSON.stringify(joBlock.uncles) },
+                        { "number": 18, "name": "extraData",        "value": joBlock.extraData },
+                        //{ "number": 19, "name": "logsBloom",        "value": joBlock.logsBloom }
+                    ];
+                    $("#idPropertiesGrid0").jsGrid( {
+                        // basic
+                        "width": "100%", "height": "200pt"
+                        , "inserting": false, "editing": false, "sorting": true
+                        ,"data": arrData
+                        ,"fields": [
+                            { "name": "number", "type": "number", "width": 5, "title": "#" },
+                            { "name": "name",  "type": "text", "width": 10, "title": "Name" },
+                            { "name": "value", "type": "text", "width": 85, "title": "Value" }
+                        ]
+                        // , "rowClick": function( args ) {
+                        //     //console.log( JSON.stringifyOnce(args,null,4) );
+                        //     //alert( JSON.stringifyOnce(args,null,4) );
+                        // }
+                    } );
+                    do_load_block_transactions( joBlock );
+                } catch( e ) {
+                }
+            }
+            $("#idPropertiesContainer0").css( { "display": "block" } );
+            try { $("#idPropertiesHeading0").html( "Block# " + joBlock.number + " properties" ); } catch( e ) { }
+            try { $("#idPropertiesGrid0").html( "N/A" ); } catch( e ) { }
+            do_load_block_properties( joBlock );
+        }
+
+        function update_recent_searches() {
+            WebuiPopovers.hideAll();
+            var po = $("#idSearchHistoryPopover");
+            var strHTML = "<h4 class=\"white\"><nobr>Recent Searches:</nobr></h4>";
+            var cnt = joHistorySearch.size();
+            for( var i = 0; i < cnt; ++ i ) {
+                var strItem = joHistorySearch.get( i );
+                var s = "<br /><nobr><a href=\"javascript: do_search('"+strItem+"');\">" + strItem + "<nobr>";
+                if( i > 0 )
+                    strHTML += "<br />";
+                strHTML += s;
+            }
+            if( cnt == 0 )
+                strHTML += "<br /><br /><nobr><span class=\"helper-comment\">empty</span>";
+            po.html( strHTML );
+        }
+        async function do_search( strWhat, isForce ) {
+            if( ! joHistorySearch.push(strWhat) ) {
+                if( strWhat == "" ) {
+                    // save empty value to storage - important
+                    store.set( "search_string", "" );
+                }
+                if( isForce !== true )
+                    return;
+            }
+            if( joHistorySearch.isModified() ) {
+                joHistorySearch.save( "history_search" );
+                joHistorySearch.setModified( false );
+            }
+            store.set( "search_string", "" + strWhat );
+            $("#idSearchInput").val( strWhat ); // show in search editor
+            update_recent_searches();
+            WebuiPopovers.hideAll();
+            try { await do_show_account_info( strWhat ); return; } catch( e ) { }
+            try { await do_show_block_by_number_or_hash( strWhat ); return; } catch( e ) { }
+        }
+
+        function get_web3_url_string() {
+            var strWeb3URL = store.get( "server_url" );
+            if( strWeb3URL == undefined || strWeb3URL == null || strWeb3URL == "" )
+                strWeb3URL = "" + $("#idServerInput").val();
+            if( strWeb3URL.length == 0 )
+                strWeb3URL = "https://mainnet.infura.io"; // main-net
+            return strWeb3URL;
+        }
+        function update_recent_servers() {
+            WebuiPopovers.hideAll();
+            // idServerRecentEntries
+            var po = $("#idServerRecentEntries");
+            var strHTML = "<br /><h4 class=\"white\"><nobr>Recent Servers:</nobr></h4>";
+            var cnt = joHistoryURLs.size();
+            for( var i = 0; i < cnt; ++ i ) {
+                var strItem = joHistoryURLs.get( i );
+                var s = "<br /><nobr><a href=\"javascript: do_connect('"+strItem+"');\">" + strItem + "<nobr>";
+                strHTML += s;
+            }
+            if( cnt == 0 )
+                strHTML += "<br /><br /><nobr><span class=\"helper-comment\">empty</span>";
+            po.html( strHTML );
+        }
+        function is_ws_url( strWeb3URL ) {
+            try {
+                var u = new URL( strWeb3URL );
+                if( u.protocol == "ws:" || u.protocol == "wss:" )
+                    return true;
+            } catch( e ) { }
+            return false;
+        }
+        async function do_connect( strWeb3URL, isForce ) {
+            if( ! joHistoryURLs.push(strWeb3URL) ) {
+                if( isForce !== true )
+                    return;
+            }
+            if( joHistoryURLs.isModified() ) {
+                joHistoryURLs.save( "history_urls" );
+                joHistoryURLs.setModified( false );
+            }
+            update_recent_servers();
+            hide_properties();
+            clear_blocks_grid();
+            WebuiPopovers.hideAll();
+            store.set( "server_url", "" + strWeb3URL );
+            $("#idServerInput").val( strWeb3URL ); // show in server URL editor
+            w3 = null;
+            console.log( "Will connect to " + strWeb3URL );
+            if( is_ws_url( strWeb3URL ) )
+                w3 = new Web3( new Web3.providers.WebsocketProvider( strWeb3URL ) );
+            else
+                w3 = new Web3( new Web3.providers.HttpProvider( strWeb3URL ) );
+            await do_expose_blocks_grid();
+        }
+    </script>
+</head>
+<body>
+    <table class="top_table">
+        <tbody class="top_table">
+            <tr class="top_table">
+                <td class="top_table" style="width: 32em;">
+                    <h1>&nbsp;SKALE - Ethereum Blockchain Explorer</h1>
+                </td>
+                <td class="top_table" style="width: 21em;">
+                    <form id="idServerForm" onsubmit="event.preventDefault(); return true;">
+                        <input id="idServerInput" type="text" placeholder="Server URL" class="clearable" autocomplete="off"></input>
+                        <button id="idServerButton" type="submit" onclick="javascript: do_connect( '' + $('#idServerInput').val() );">&nbsp;&nbsp;Connect&nbsp;&nbsp;</button>
+                    </form>
+                    <div id="idServerHistoryPopover" class="webui-popover-content white">
+                        <h4 class="white"><nobr>Known Servers:</nobr></h4>
+                        <br />
+                        <nobr><a class="white" href="javascript: do_connect('https://mainnet.infura.io');" >Main-net<span class="helper-comment">(HTTP)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('wss://mainnet.infura.io/ws');">Main-net<span class="helper-comment">(web socket)</span></a></nobr><br/>
+                        <br />
+                        <nobr><a class="white" href="javascript: do_connect('https://rinkeby.infura.io');" >Test Ethereum Network<span class="helper-comment">(Rinkeby)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('https://kovan.infura.io');"   >Test Ethereum Network<span class="helper-comment">(Kovan)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('https://ropsten.infura.io');" >Test Ethereum Network<span class="helper-comment">(Ropsten)</span></a></nobr><br/>
+                        <br />
+                        <nobr><a class="white" href="javascript: do_connect('http://127.0.0.1:15000');"     >Local S-Chain<span class="helper-comment">(skaled, HTTP)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('https://127.0.0.1:15010');"    >Local S-Chain<span class="helper-comment">(skaled, HTTPS)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('ws://127.0.0.1:15020');"       >Local S-Chain<span class="helper-comment">(skaled, WS)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('wss://127.0.0.1:15030');"      >Local S-Chain<span class="helper-comment">(skaled, WSS)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('http://127.0.0.1:8545');"     >Local Test<span class="helper-comment">(geth, HTTP)</span></a></nobr><br/>
+                        <nobr><a class="white" href="javascript: do_connect('ws://127.0.0.1:8546');"       >Local Test<span class="helper-comment">(geth, WS)</span></a></nobr><br/>
+                        <div id="idServerRecentEntries" class="white">
+                        </div>
+                    </div>
+                </td>
+                <td class="top_table" style="width: 30em;">
+                    <form id="idSearchForm" onsubmit="event.preventDefault(); return true;">
+                        <input id="idSearchInput" type="text" placeholder="Tx Hash, Address or Block #" class="clearable" autocomplete="off"></input>
+                        <button id="idSearchButton" type="submit" onclick="javascript: do_search( '' + $('#idSearchInput').val() );">&nbsp;&nbsp;Search&nbsp;&nbsp;</button>
+                    </form>
+                    <div id="idSearchHistoryPopover" class="webui-popover-content white">
+                    </div>
+                </td>
+                <td class="top_table">
+                    Latest block#: <span id="idLatestBlockNumber">N/A</span> &nbsp;&nbsp;&nbsp;&nbsp; <span id="idBlocksListExternalPager"></span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="idBlocksListGrid"></div>
+
+    <div id="idPropertiesContainer0">
+        <h1 id="idPropertiesHeading0"></h1>
+        <div id="idPropertiesGrid0"></div>
+    </div>
+    <div id="idPropertiesContainer1">
+        <h1 id="idPropertiesHeading1"></h1>
+        <div id="idPropertiesGrid1"></div>
+    </div>
+    <div id="idPropertiesContainer2">
+        <h1 id="idPropertiesHeading2"></h1>
+        <div id="idPropertiesGrid2"></div>
+    </div>
+
+    <div class="dialog" id="idDialog" title="Information">
+        <p>
+            <!-- span class="ui-icon ui-icon-circle-check" style="float:left;"></span -->
+            <div id="idDialogMessage"></div>
+        </p>
+        <div id="idDialogGrid"></div>
+    </div>
+
+</body>
+</html>
