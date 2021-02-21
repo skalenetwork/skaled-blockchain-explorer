@@ -329,6 +329,11 @@
                 , "updateItem": function( item ) { }
                 , "deleteItem": function( item ) { }
             };
+            $( "select#idPagesSize" ).off().on( "change", function() {
+                nPageSize = parseInt( this.value );
+                store.set( "blocks_page_size", "" + nPageSize );
+                do_expose_blocks_grid();
+            } );
             $("#idBlocksListGrid").jsGrid( {
                 // basic
                 "width": "100%", "height": "auto"
@@ -685,6 +690,22 @@
                 w3 = new Web3( new Web3.providers.WebsocketProvider( strWeb3URL ) );
             else
                 w3 = new Web3( new Web3.providers.HttpProvider( strWeb3URL ) );
+            //
+            try {
+                nPageSize = store.get( "blocks_page_size", "10" );
+                if( nPageSize == null || nPageSize == undefined || nPageSize == NaN || nPageSize == "" )
+                    nPageSize = 10;
+                else {
+                    nPageSize = parseInt( nPageSize );
+                    if( nPageSize == null || nPageSize == undefined || nPageSize == NaN || nPageSize < 10 )
+                        nPageSize = 10;
+                }
+            } catch( err ) {
+                nPageSize = 10;
+            }
+            // $( "select#idPagesSize option[value=" + nPageSize + "]" ).attr( "selected", "selected" );
+            $( "select#idPagesSize" ).val( "" + nPageSize );
+            
             await do_expose_blocks_grid();
         }
     </script>
@@ -731,6 +752,17 @@
                 </td>
                 <td class="top_table">
                     Latest block#: <span id="idLatestBlockNumber">N/A</span> &nbsp;&nbsp;&nbsp;&nbsp; <span id="idBlocksListExternalPager"></span>
+                </td>
+                <td class="top_table">
+                    Page size:
+                    <select id="idPagesSize" name="idPagesSize">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="500">500</option>
+                    </select>
                 </td>
             </tr>
         </tbody>
